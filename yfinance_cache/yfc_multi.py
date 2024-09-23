@@ -113,6 +113,24 @@ def download(tickers,
         ticker = tickers[0]
         return dfs[ticker]
 
+    dfs = {}
+    failed_tickers = []
+    for i, ticker in enumerate(tickers):
+        if results[i] is not None:
+            dfs[ticker] = results[i]
+        else:
+            failed_tickers.append(ticker)
+
+    if failed_tickers:
+        print(f"Warning: Failed to download data for the following tickers: {', '.join(failed_tickers)}")
+
+    if len(dfs) == 0:
+        print("Error: No data was successfully downloaded for any ticker.")
+        return None
+
+    if len(dfs) == 1:
+        return next(iter(dfs.values()))
+
     reindex_dfs(dfs, ignore_tz)
     try:
         data = pd.concat(dfs.values(), axis=1, sort=True, keys=dfs.keys())
@@ -160,12 +178,15 @@ def download_one_parallel(ticker, queue, start=None, end=None, max_age=None,
                       actions=actions, period=period, interval=interval,
                       prepost=prepost, proxy=proxy, rounding=rounding,
                       keepna=keepna, session=session)
-        queue.put(('success', 0))
+        if df is None:
+            queue.put(('warning', f"No data found for {ticker}"))
+        else:
+            queue.put(('success', 0))
         return df
     except Exception as e:
         tb = traceback.format_exception(type(e), e, e.__traceback__)
         queue.put(('error', (e, ''.join(tb))))
-        return e
+        return None
 
 
 def download_one(ticker, start=None, end=None, max_age=None,
