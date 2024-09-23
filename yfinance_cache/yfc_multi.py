@@ -194,12 +194,15 @@ def download_one(ticker, start=None, end=None, max_age=None,
                   actions=False, period="max", interval="1d",
                   prepost=False, proxy=None, rounding=False,
                   keepna=False, session=None):
-    dat = yfc_ticker.Ticker(ticker, session=session)
-    df = dat.history(
-            period=period, interval=interval, max_age=max_age,
-            start=start, end=end, prepost=prepost,
-            actions=actions, adjust_divs=adjust_divs,
-            adjust_splits=adjust_splits, proxy=proxy,
-            rounding=rounding, keepna=keepna
-    )
-    return df
+    try:
+        dat = yfc_ticker.Ticker(ticker, session=session)
+        df = dat.history(
+                period=period, interval=interval, max_age=max_age,
+                start=start, end=end, prepost=prepost,
+                actions=actions, adjust_divs=adjust_divs,
+                adjust_splits=adjust_splits, proxy=proxy,
+                rounding=rounding, keepna=keepna
+        )
+        return df
+    except Exception as e:
+        return None
